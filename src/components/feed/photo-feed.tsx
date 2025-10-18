@@ -21,7 +21,6 @@ type PhotoFeedProps = {
   initialPhotos: PexelsPhoto[];
   initialPage: number;
   perPage: number;
-  totalResults?: number;
   featuredPhotos?: PexelsPhoto[];
   featuredError?: string | null;
 };
@@ -31,7 +30,6 @@ const PhotoFeed = ({
   initialPhotos,
   initialPage,
   perPage,
-  totalResults,
   featuredPhotos = [],
   featuredError = null
 }: PhotoFeedProps) => {

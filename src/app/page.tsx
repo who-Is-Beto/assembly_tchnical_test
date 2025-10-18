@@ -82,7 +82,6 @@ const Home = async ({ searchParams }: PageProps) => {
             initialPhotos={photos}
             perPage={24}
             query={query}
-            totalResults={total}
             featuredPhotos={featuredPhotos}
             featuredError={curatedError}
           />

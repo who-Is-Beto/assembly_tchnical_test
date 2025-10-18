@@ -38,14 +38,20 @@ describe("PhotoFeed", () => {
     intersectionCallback = null;
     observeMock.mockReset();
     disconnectMock.mockReset();
-    (globalThis as any).IntersectionObserver = jest.fn((callback: IntersectionObserverCallback) => {
+    const mockIntersectionObserver = jest.fn((callback: IntersectionObserverCallback) => {
       intersectionCallback = callback;
       return {
         observe: observeMock,
         disconnect: disconnectMock,
         unobserve: jest.fn(),
         takeRecords: jest.fn(),
-      };
+      } as IntersectionObserver;
+    });
+
+    Object.defineProperty(globalThis, "IntersectionObserver", {
+      writable: true,
+      configurable: true,
+      value: mockIntersectionObserver as unknown as typeof IntersectionObserver,
     });
     global.fetch = jest.fn() as unknown as typeof fetch;
     window.localStorage.clear();
@@ -62,7 +68,6 @@ describe("PhotoFeed", () => {
         initialPhotos={initialPhotos}
         perPage={perPage}
         query="nature"
-        totalResults={48}
       />,
     );
 
@@ -91,7 +96,6 @@ describe("PhotoFeed", () => {
         initialPhotos={initialPhotos}
         perPage={perPage}
         query="nature"
-        totalResults={48}
       />,
     );
 
@@ -119,7 +123,6 @@ describe("PhotoFeed", () => {
         initialPhotos={initialPhotos}
         perPage={perPage}
         query="nature"
-        totalResults={48}
       />,
     );
 
@@ -177,7 +180,6 @@ describe("PhotoFeed", () => {
         initialPhotos={initialPhotos}
         perPage={perPage}
         query="nature"
-        totalResults={48}
         featuredPhotos={[createPhoto({ id: 99, photographer: "Zoe" })]}
       />,
     );
@@ -193,7 +195,6 @@ describe("PhotoFeed", () => {
         initialPhotos={initialPhotos}
         perPage={perPage}
         query="nature"
-        totalResults={48}
         featuredError="Daily feed offline"
       />,
     );
