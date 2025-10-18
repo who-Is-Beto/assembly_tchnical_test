@@ -1,103 +1,95 @@
-import Image from "next/image";
+import Hero from "@/components/hero";
+import PhotoFeed from "@/components/feed/photo-feed";
+import { searchPhotos, listCuratedPhotos } from "@/services/pexels";
+import { titleCase } from "@/lib/strings";
 
-export default function Home() {
+type PageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+const DEFAULT_QUERY = "nature";
+const FEATURED_TAGS = ["landscape", "architecture", "travel", "abstract", "forest", "aerial"] as const;
+const TRENDING_ID = "trending-searches";
+
+const getParamValue = (param?: string | string[]) => (Array.isArray(param) ? param[0] : param);
+
+const sanitizeQuery = (value?: string) => (value && value.trim().length > 0 ? value.trim() : undefined);
+
+const Home = async ({ searchParams }: PageProps) => {
+  const params = await searchParams;
+  const rawQuery = getParamValue(params?.query);
+  const query = sanitizeQuery(rawQuery) ?? DEFAULT_QUERY;
+
+  type SearchResults = Awaited<ReturnType<typeof searchPhotos>>;
+  type CuratedResults = Awaited<ReturnType<typeof listCuratedPhotos>>;
+
+  let results: SearchResults | null = null;
+  let error: string | null = null;
+  let curated: CuratedResults | null = null;
+  let curatedError: string | null = null;
+
+  try {
+    results = await searchPhotos({
+      query,
+      perPage: 24,
+    });
+  } catch (err) {
+    error = err instanceof Error ? err.message : "We ran into a problem while loading photos. Try again in a bit.";
+  }
+
+  try {
+    curated = await listCuratedPhotos({ perPage: 12 });
+  } catch (err) {
+    curatedError = err instanceof Error ? err.message : "Top photos are unavailable right now. Please retry soon.";
+  }
+
+  const photos = results?.photos ?? [];
+  const total = results?.total_results;
+  const displayQuery = titleCase(query);
+  const featuredPhotos = curated?.photos ?? [];
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <main className="min-h-screen transition-colors duration-500" style={{ background: "var(--page-bg)", color: "var(--page-text)" }}>
+      <Hero query={query} trendingId={TRENDING_ID} trendingTags={FEATURED_TAGS} />
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      <section className="mx-auto max-w-6xl px-4 pb-16 pt-10 md:px-6 lg:px-8">
+        <header className="flex flex-wrap items-center justify-between gap-3 text-hero-muted">
+          <div>
+            <h2 className="text-2xl font-semibold text-hero-heading md:text-3xl">{displayQuery} Photography</h2>
+            {total ? <p className="text-sm text-hero-muted">Roughly {total.toLocaleString()} photos available.</p> : null}
+          </div>
+          <p className="text-xs uppercase tracking-[0.3em] text-hero-muted">Live Feed</p>
+        </header>
+
+        {error && (
+          <p
+            className="mt-8 rounded-lg border border-red-300 bg-red-50/10 px-4 py-3 text-sm text-red-200"
+            role="alert"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+            {error}
+          </p>
+        )}
+
+        {!error && photos.length === 0 && (
+          <p className="mt-10 text-sm text-hero-muted" role="status">
+            No photos found for “{displayQuery}”. Try another keyword from the trending list above.
+          </p>
+        )}
+
+        {!error && photos.length > 0 && (
+          <PhotoFeed
+            initialPage={1}
+            initialPhotos={photos}
+            perPage={24}
+            query={query}
+            totalResults={total}
+            featuredPhotos={featuredPhotos}
+            featuredError={curatedError}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+        )}
+      </section>
+    </main>
   );
-}
+};
+
+export default Home;

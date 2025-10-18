@@ -1,36 +1,112 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 📸 Pexels Showcase
 
-## Getting Started
+Discover, favorite, and deep dive into Pexels imagery with an Unsplash-inspired experience built on Next.js 15, Tailwind CSS 4, and TypeScript.
 
-First, run the development server:
+<p align="center">
+  <em>Light ↔ Dark theme toggle with smooth transitions, infinite scroll, favorites rail, and quick-look modal.</em>
+</p>
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## ✨ Feature Highlights
+
+- **Daily spotlight** – curated “Top Photos Today” grid sourced from the Pexels curated endpoint.
+- **Dynamic theme system** – persistent light/dark modes with animated toggle and CSS variable driven palettes.
+- **Infinite photo feed** – server-rendered first page and client-side infinite scrolling via Pexels search API.
+- **Quick-look modal** – high-res preview with rich metadata, download link, and favorite shortcut.
+- **Favorites rail** – localStorage-backed carousel to revisit saved shots instantly.
+- **Robust testing** – Jest + Testing Library coverage for all major components and API routes.
+
+## 🧱 Tech Stack
+
+| Layer | Details |
+| --- | --- |
+| Framework | Next.js 15 (App Router, Server Components) |
+| Styling | Tailwind CSS 4 with custom CSS variables for theming |
+| Language | TypeScript (strict, app + tests) |
+| API | Pexels REST API (`search`, `curated`, `photos/:id`) |
+| Testing | Jest 29 + @testing-library/react + @testing-library/user-event |
+
+## 🗃️ Project Structure
+
+```
+src/
+├─ app/
+│  ├─ api/pexels/search/route.ts      # API route proxying Pexels search
+│  ├─ page.tsx                        # Server page orchestrating initial fetch + sections
+│  └─ layout.tsx                      # Global layout with ThemeProvider & fonts
+├─ components/
+│  ├─ hero.tsx                        # Hero banner + search form + theme toggle
+│  ├─ feed/
+│  │  ├─ photo-feed.tsx              # Client component managing feed state/infinite scroll
+│  │  ├─ photo-card.tsx              # Individual photo tile
+│  │  ├─ favorites-rail.tsx          # Locally stored favorites carousel
+│  │  ├─ photo-modal.tsx             # Quick-look modal overlay
+│  │  ├─ skeleton-card.tsx           # Loading skeleton placeholder
+│  │  └─ constants.ts                # Shared identifiers (storage key, modal id)
+│  ├─ theme/
+│  │  ├─ theme-provider.tsx          # Context for theme persistence + toggling
+│  │  └─ theme-toggle.tsx            # Animated toggle button
+├─ services/
+│  └─ pexels/index.ts                # Typed service layer for Pexels endpoints
+├─ lib/
+│  ├─ strings.ts                     # `titleCase` helper
+│  └─ cn.ts                          # Utility className combiner
+└─ components/__tests__/             # Jest+RTL specs for hero/feed components
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## ⚙️ Environment Setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Install dependencies** (Node 18+ recommended):
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+   ```bash
+   npm install
+   ```
 
-## Learn More
+2. **Configure Pexels API key** (required for data fetching):
 
-To learn more about Next.js, take a look at the following resources:
+   ```bash
+   cp .env.example .env.local
+   # then edit .env.local and set PEXELS_API_KEY=your-key-here
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. **Run the development server**:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   ```bash
+   npm run dev
+   ```
 
-## Deploy on Vercel
+   Visit **http://localhost:3000** to explore the gallery. Use the hero search form to try new queries; scroll to load more results; toggle the theme via the top right switch.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🧪 Testing
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Execute the full Jest suite (component + API route tests):
+
+```bash
+npm test -- --runInBand
+```
+
+This validates infinite scroll behavior, favorites interactions, modal actions, hero rendering, and API validation logic.
+
+## 🧠 Core Concepts
+
+- **Server-first data** – the main page fetches initial search results on the server for fast first paint, handing control to the client feed for pagination.
+- **Composable design system** – CSS variables + Tailwind utility classes provide consistent theming across components.
+- **Context-driven theming** – `ThemeProvider` syncs user preference to `localStorage` and `<html data-theme>` enabling instant, animated palette swaps.
+- **API abstraction** – Pexels service centralizes fetch logic, query building, error handling, and typing for maintainable feature additions.
+
+## 🚀 Deployment
+
+The app is optimized for Vercel deployments: install dependencies, set `PEXELS_API_KEY` in project environment variables, and build with:
+
+```bash
+npm run build
+```
+
+Then deploy via `vercel`, GitHub integration, or your preferred provider.
+
+## 🙌 Credits
+
+- Photography by the amazing creators on [Pexels](https://www.pexels.com/)
+- UI/UX inspiration from [Unsplash](https://unsplash.com/)
+- Built with ❤️ using Next.js + Tailwind CSS + TypeScript
+
+Enjoy exploring! 🌈
